@@ -1,6 +1,6 @@
 # Twitter-Emotion-Classification
 
-PROFESSOR: Tiago Eugenio de Melo
+PROFESSOR:  Dr. Tiago Eugenio de Melo
 
 NOMES:
 	ÁUREA CRISTIANE RIBEIRO DE LIMA, 
