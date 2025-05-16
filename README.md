@@ -7,3 +7,89 @@ NOMES:
 	DANIEL NASCIMENTO MOTTA, 
 	MONIQUE SOUSA SILVA, 
 	VITOR HUGO DA SILVA LIMA
+
+1. Importação de Bibliotecas
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import re
+import string
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+from keras.preprocessing.text import Tokenizer
+from keras.utils import pad_sequences
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Embedding, LSTM, Dense, Dropout
+Comentários: Aqui, são importadas bibliotecas essenciais para análise de dados (numpy, pandas), visualização (matplotlib, seaborn), processamento de texto (nltk, re, string) e construção do modelo (keras, sklearn). O uso do nltk para lematização e remoção de stopwords é uma prática comum em PLN.
+
+2. Carregamento e Exploração dos Dados
+df = pd.read_csv('/kaggle/input/emotion-dataset/emotion_dataset.csv')
+df.head()
+Comentários: O dataset é carregado e visualizado. É importante sempre verificar né as primeiras linhas para entender a estrutura dos dados.
+df['Emotion'].value_counts().plot(kind='bar')
+plt.title('Distribuição das Emoções')
+plt.xlabel('Emoção')
+plt.ylabel('Contagem')
+plt.show()
+Comentários: A distribuição das classes de emoção é visualizada. Isso ajudou a identificar possíveis desbalanceamentos que podem afetar o desempenho do modelo.
+
+3. Pré-processamentos dos dados
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'\[.*?\]', '', text)
+    text = re.sub(r'http\S+', '', text)
+    text = re.sub(r'<.*?>+', '', text)
+    text = re.sub(r'[%s]' % re.escape(string.punctuation), '', text)
+    text = re.sub(r'\n', '', text)
+    text = re.sub(r'\w*\d\w*', '', text)
+    return text
+
+df['Clean_Text'] = df['Text'].apply(lambda x: clean_text(x))
+Comentários: A função clean_text realizou a limpeza dos textos, removendo pontuações, links, números e convertendo para minúsculas. Essa etapa foi crucial para reduzir o ruído nos dados.
+
+nltk.download('stopwords')
+stop = stopwords.words('english')
+df['Clean_Text'] = df['Clean_Text'].apply(lambda x: ' '.join([word for word in x.split() if word not in stop]))
+Comentários: As stopwords foram removidas para melhorar a qualidade dos dados.
+
+nltk.download('wordnet')
+lemmatizer = WordNetLemmatizer()
+df['Clean_Text'] = df['Clean_Text'].apply(lambda x: ' '.join([lemmatizer.lemmatize(word) for word in x.split()]))
+Comentários: A lematização reduziu as palavras às suas formas base, o que ajuda a normalizar os dados e reduzir a dimensionalidade.
+
+4. Tokenização e Vetorização
+tokenizer = Tokenizer(num_words=5000, oov_token='<OOV>')
+tokenizer.fit_on_texts(df['Clean_Text'])
+sequences = tokenizer.texts_to_sequences(df['Clean_Text'])
+padded_sequences = pad_sequences(sequences, padding='post')
+Comentários: Os textos são convertidos em sequências numéricas, onde cada palavra é representada por um número. O padding é aplicado para garantir que todas as sequências tenham o mesmo comprimento.
+
+label_encoder = LabelEncoder()
+df['Emotion_Encoded'] = label_encoder.fit_transform(df['Emotion'])
+Comentários: As emoções são codificadas numericamente para serem utilizadas pelo modelo de machine learning.
+
+5. Construção e treinamento do modelo
+model = Sequential()
+model.add(Embedding(input_dim=5000, output_dim=64, input_length=padded_sequences.shape[1]))
+model.add(LSTM(64, dropout=0.2, recurrent_dropout=0.2))
+model.add(Dense(64, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(len(label_encoder.classes_), activation='softmax'))
+
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+Comentários: O modelo é uma rede neural sequencial com uma camada de embedding, uma camada LSTM para capturar dependências temporais, e camadas densas para a classificação final. A função de perda utilizada é a sparse_categorical_crossentropy, adequada para classificação multiclasse com rótulos inteiros.
+
+X_train, X_test, y_train, y_test = train_test_split(padded_sequences, df['Emotion_Encoded'], test_size=0.2, random_state=42)
+model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test))
+Comentários: Os dados são divididos em conjuntos de treinamento e teste. O modelo é treinado por 10 épocas, e seu desempenho é avaliado no conjunto de teste.
+
+6. Avaliação do modelo
+loss, accuracy = model.evaluate(X_test, y_test)
+print(f'Acurácia no conjunto de teste: {accuracy*100:.2f}%')
+Comentários: A acurácia do modelo no conjunto de teste é impressa. Essa métrica indica a proporção de previsões corretas feitas pelo modelo.
+
+Conclusão: O notebook (Dataset) apresenta uma abordagem completa para a classificação de emoções em tweets, desde a preparação dos dados até a avaliação do modelo. As etapas de pré-processamento são bem estruturadas, e o uso de uma LSTM é apropriado para lidar com dados sequenciais de texto. Para aprimorar ainda mais o modelo, poderia-se considerar o uso de embeddings pré-treinados, como GloVe ou Word2Vec, ou modelos mais avançados como o BERT.
