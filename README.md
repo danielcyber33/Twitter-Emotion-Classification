@@ -1,6 +1,6 @@
 # Twitter-Emotion-Classification
 
-PROFESSOR: Tiago Eugenio de Melo
+PROFESSOR: Dr. Tiago Eugenio de Melo
 
 NOMES:
 	ÁUREA CRISTIANE RIBEIRO DE LIMA, 
@@ -8,14 +8,14 @@ NOMES:
 	MONIQUE SOUSA SILVA, 
 	VITOR HUGO DA SILVA LIMA
 
+ ##INSTRUÇÕES DE USO##
+
 #Twitter Emotion Classification
 
 Este projeto tem como objetivo classificar emoções expressas em tweets utilizando técnicas de Processamento de Linguagem Natural (PLN) e Redes Neurais com LSTM.
 
 A ideia principal é treinar um modelo que consiga identificar emoções como alegria, raiva, tristeza, medo, entre outras, com base no texto dos tweets.  
 Este repositório foi desenvolvido como parte de uma atividade prática da pós-graduação em Ciência de Dados.
-
----
 
 #Dataset
 
